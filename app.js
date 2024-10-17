@@ -1,4 +1,3 @@
-
 // Initialize descriptors, variants, and cross-impact matrix
 let descriptors = [];
 let variants = {};
@@ -91,7 +90,7 @@ function generateCIBMatrix() {
     document.getElementById("cibMatrixContainer").innerHTML = matrixHtml;
 }
 
-// New function to generate consistent scenarios (restored functionality)
+// Generate consistent scenarios
 function generateConsistentScenarios() {
     const consistentScenarios = [];
     descriptors.forEach(descriptor => {
