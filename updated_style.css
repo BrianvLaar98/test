@@ -1,0 +1,67 @@
+
+/* General styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.container {
+  margin-bottom: 20px;
+}
+
+h1, h3 {
+  color: #333;
+}
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 5px;
+}
+
+th, td {
+  text-align: center;
+}
+
+input[type="number"], input[type="text"] {
+  padding: 5px;
+  width: 100px;
+}
+
+/* Scenario Tableau Styling */
+#scenarioTableau {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.scenario {
+  border: 1px solid #333;
+  padding: 1rem;
+  min-width: 200px;
+  background-color: #f9f9f9;
+}
+
+.scenario h4 {
+  margin: 0.2rem 0;
+}
+
+.scenario p {
+  margin: 0.4rem 0;
+}
+
+/* Styling for consistency tolerance section */
+label, input[type="number"] {
+  margin-right: 10px;
+}
+
+button {
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+button:hover {
+  background-color: #f0f0f0;
+}
