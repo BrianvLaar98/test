@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIB and TOPSIS Tool with Scenario Ranking</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .container { margin-bottom: 20px; }
+    table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
+    th, td { text-align: center; }
+    input[type="number"] { width: 60px; }
+    /* Scenario Tableau styling */
+    #scenarioTableau { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .scenario { border: 1px solid #333; padding: 1rem; min-width: 200px; background-color: #f9f9f9; }
+    .descriptor { margin: 0.2rem; font-weight: bold; }
+    .variant { margin: 0.2rem; padding: 0.4rem; background-color: #e6e6e6; }
+  </style>
+</head>
+<body>
+
+<h1>CIB and TOPSIS Tool with Scenario Ranking</h1>
+
+<div class="container">
+  <h3>File Handling</h3>
+  <button onclick="saveProject()">Save Project</button>
+  <button onclick="loadProject()">Load Project</button>
+  <input type="file" id="fileInput" style="display:none;" onchange="handleFile(event)">
+</div>
+
+<div class="container">
+  <h3>Manage Descriptors and Variants</h3>
+  <input type="text" id="descriptorInput" placeholder="Add descriptor">
+  <button onclick="addDescriptor()">Add Descriptor</button>
+  <select id="descriptorSelect"></select>
+  <input type="text" id="variantInput" placeholder="Add variant">
+  <button onclick="addVariant()">Add Variant Manually</button>
+  <br><br>
+  <label><input type="checkbox" id="autoGenerateCheck" onclick="toggleAutoGenerate()"> Use Automatic Variant Generation</label>
+  <div id="autoVariantContainer" style="display: none;">
+    <label>Min Value: <input type="number" id="minValue" step="any"></label>
+    <label>Max Value: <input type="number" id="maxValue" step="any"></label>
+    <label>Number of Variants: <input type="number" id="numVariants" min="1"></label>
+    <button onclick="autoGenerateVariants()">Generate Variants</button>
+  </div>
+  <ul id="descriptorList"></ul>
+</div>
+
+<div class="container">
+  <h3>Cross-Impact Matrix Input</h3>
+  <div id="cibMatrixContainer"></div>
+  <button onclick="generateConsistentScenarios()">Generate Consistent Scenarios</button>
+</div>
+
+<div class="container">
+  <h3>Scenario Tableau</h3>
+  <div id="scenarioTableau"></div>
+</div>
+
+<div class="container">
+  <h3>Scenario Ranking (TOPSIS)</h3>
+  <button onclick="calculateTopsis()">Rank Scenarios</button>
+  <div id="topsisResult"></div>
+</div>
+
+<script>
+  let descriptors = [];
+  let variants = {};
+  let cibMatrix = [];
+  let consistentScenarios = [];
+
+  // File handling for project save/load
+  function saveProject() {
+    const projectData = { descriptors, variants, cibMatrix };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "project.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  }
+
+  function loadProject() {
+    document.getElementById('fileInput').click();
+  }
+
+  function handleFile(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const projectData = JSON.parse(e.target.result);
+      descriptors = projectData.descriptors;
+      variants = projectData.variants;
+      cibMatrix = projectData.cibMatrix || [];
+      updateDescriptorList();
+      generateCIBMatrix();
+    };
+    reader.readAsText(file);
+  }
+
+  // Descriptor and Variant Management
+  function addDescriptor() {
+    const descriptorInput = document.getElementById('descriptorInput').value;
+    if (descriptorInput) {
+      descriptors.push(descriptorInput);
+      variants[descriptorInput] = [];
+      document.getElementById('descriptorInput').value = '';
+      updateDescriptorList();
+      updateDescriptorSelect();
+      generateCIBMatrix();
+    }
+  }
+
+  function addVariant() {
+    const descriptor = document.getElementById('descriptorSelect').value;
+    const variant = document.getElementById('variantInput').value;
+    if (descriptor && variant) {
+      variants[descriptor].push(variant);
+      document.getElementById('variantInput').value = '';
+      updateVariantList(descriptor);
+    }
+  }
