@@ -91,7 +91,7 @@ function generateCIBMatrix() {
     document.getElementById("cibMatrixContainer").innerHTML = matrixHtml;
 }
 
-// Consistency-based scenario generation and tableau display
+// Function to generate consistent scenarios and update tableau
 function generateConsistentScenarios() {
     const allVariants = [];
     const consistentScenarios = [];
@@ -136,11 +136,6 @@ function generateConsistentScenarios() {
     displayScenarioTableau(consistentScenarios);
 }
 
-// Update tolerance level for consistency check
-function updateTolerance() {
-    tolerance = parseFloat(document.getElementById("toleranceInput").value);
-}
-
 // Helper function: Get index of variant in the CIB matrix
 function getIndexInMatrix(variant) {
     let index = -1;
@@ -170,14 +165,23 @@ function getScenarioCombinations(variantGroups) {
 // Display consistent scenarios in a tableau
 function displayScenarioTableau(scenarios) {
     let tableauHtml = "<h3>Consistent Scenario Tableau:</h3><div id='scenarioTableau'>";
-    scenarios.forEach((scenarioData, index) => {
-        tableauHtml += `<div class='scenario'><h4>Scenario ${index + 1}</h4><p>`;
-        scenarioData.scenario.forEach(variant => {
-            tableauHtml += `${variant.descriptor}: ${variant.variant} <br>`;
+    if (scenarios.length === 0) {
+        tableauHtml += "<p>No consistent scenarios found</p>";
+    } else {
+        scenarios.forEach((scenarioData, index) => {
+            tableauHtml += `<div class='scenario'><h4>Scenario ${index + 1}</h4><p>`;
+            scenarioData.scenario.forEach(variant => {
+                tableauHtml += `${variant.descriptor}: ${variant.variant} <br>`;
+            });
+            tableauHtml += `<br>Impact Balances: ${scenarioData.impactBalances.join(", ")}</p></div>`;
         });
-        tableauHtml += `<br>Impact Balances: ${scenarioData.impactBalances.join(", ")}</p></div>`;
-    });
+    }
     tableauHtml += "</div>";
 
     document.getElementById("consistentScenariosResult").innerHTML = tableauHtml;
+}
+
+// Update tolerance level for consistency check
+function updateTolerance() {
+    tolerance = parseFloat(document.getElementById("toleranceInput").value);
 }
