@@ -1,5 +1,4 @@
-
-// Project data initialization
+// Initialize descriptors, variants, CIB matrix, and tolerance
 let descriptors = [];
 let variants = {};
 let cibMatrix = [];
@@ -20,7 +19,7 @@ function addDescriptor() {
     }
 }
 
-// Manage descriptor list display
+// Update descriptor list display
 function updateDescriptorList() {
     const list = document.getElementById("descriptorList");
     list.innerHTML = "";
@@ -43,7 +42,7 @@ function updateDescriptorSelect() {
     });
 }
 
-// Add variant to descriptor and update CIB matrix
+// Add variant and update CIB matrix
 function addVariant() {
     const descriptor = document.getElementById("descriptorSelect").value;
     const variantInput = document.getElementById("variantInput").value.trim();
@@ -94,20 +93,32 @@ function generateCIBMatrix() {
 
 // Consistency-based scenario generation and tableau display
 function generateConsistentScenarios() {
+    const allVariants = [];
     const consistentScenarios = [];
-    const scenarioCombinations = getScenarioCombinations(Object.values(variants));
 
-    // Check each scenario for consistency based on the CIB matrix and tolerance
+    descriptors.forEach(descriptor => {
+        variants[descriptor].forEach(variant => {
+            allVariants.push({ descriptor, variant });
+        });
+    });
+
+    // Generate all scenario combinations
+    const scenarioCombinations = getScenarioCombinations(Object.values(variants));
     scenarioCombinations.forEach((scenario) => {
         let scenarioConsistent = true;
+        const impactBalances = Array(descriptors.length).fill(0);
 
-        // Check each pair within the scenario for consistency
+        // Calculate consistency for each combination
         for (let i = 0; i < scenario.length; i++) {
             for (let j = i + 1; j < scenario.length; j++) {
                 const indexI = getIndexInMatrix(scenario[i]);
                 const indexJ = getIndexInMatrix(scenario[j]);
                 const influence = cibMatrix[indexI][indexJ] + cibMatrix[indexJ][indexI];
 
+                impactBalances[i] += influence;
+                impactBalances[j] += influence;
+
+                // If influence exceeds tolerance, mark as inconsistent
                 if (Math.abs(influence) > tolerance) {
                     scenarioConsistent = false;
                     break;
@@ -116,8 +127,9 @@ function generateConsistentScenarios() {
             if (!scenarioConsistent) break;
         }
 
+        // If consistent, add scenario to the result
         if (scenarioConsistent) {
-            consistentScenarios.push(scenario);
+            consistentScenarios.push({ scenario, impactBalances });
         }
     });
 
@@ -129,7 +141,19 @@ function updateTolerance() {
     tolerance = parseFloat(document.getElementById("toleranceInput").value);
 }
 
-// Helper functions for scenario generation and tableau display
+// Helper function: Get index of variant in the CIB matrix
+function getIndexInMatrix(variant) {
+    let index = -1;
+    descriptors.some((desc, i) => {
+        if (variants[desc].includes(variant)) {
+            index = variants[desc].indexOf(variant) + i * variants[desc].length;
+            return true;
+        }
+    });
+    return index;
+}
+
+// Helper function: Get all combinations of scenario variants
 function getScenarioCombinations(variantGroups) {
     if (variantGroups.length === 0) return [[]];
     const [first, ...rest] = variantGroups;
@@ -143,26 +167,15 @@ function getScenarioCombinations(variantGroups) {
     return combinationsWithFirst;
 }
 
-function getIndexInMatrix(variant) {
-    let index = -1;
-    descriptors.some((desc, i) => {
-        if (variants[desc].includes(variant)) {
-            index = variants[desc].indexOf(variant) + i * variants[desc].length;
-            return true;
-        }
-    });
-    return index;
-}
-
-// Display consistent scenarios in the scenario tableau
+// Display consistent scenarios in a tableau
 function displayScenarioTableau(scenarios) {
     let tableauHtml = "<h3>Consistent Scenario Tableau:</h3><div id='scenarioTableau'>";
-    scenarios.forEach((scenario, index) => {
+    scenarios.forEach((scenarioData, index) => {
         tableauHtml += `<div class='scenario'><h4>Scenario ${index + 1}</h4><p>`;
-        scenario.forEach(variant => {
+        scenarioData.scenario.forEach(variant => {
             tableauHtml += `${variant.descriptor}: ${variant.variant} <br>`;
         });
-        tableauHtml += "</p></div>";
+        tableauHtml += `<br>Impact Balances: ${scenarioData.impactBalances.join(", ")}</p></div>`;
     });
     tableauHtml += "</div>";
 
